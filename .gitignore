@@ -1,0 +1,7 @@
+# Azure Functions localsettings file
+local.settings.json
+
+# Build results
+[Bb]in/
+[Oo]bj/
+.vscode
