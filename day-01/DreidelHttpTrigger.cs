@@ -20,9 +20,9 @@ namespace serverless.day01
 
             var values = Enum.GetValues(typeof(DreidelSymbol));
             var random = new Random();
-            var face = (DreidelSymbol)values.GetValue(random.Next(values.Length));
+            var symbol = (DreidelSymbol)values.GetValue(random.Next(values.Length));
 
-            return (ActionResult)new OkObjectResult($"Spin a dreidel and the result is {face.ToString()}.");
+            return (ActionResult)new OkObjectResult($"Spin a dreidel and the result is {symbol.ToString()}.");
         }
     }
 }
