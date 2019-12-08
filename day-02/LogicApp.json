@@ -1,0 +1,291 @@
+{
+  "definition": {
+    "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+    "actions": {
+      "Send_Text_Message_1": {
+        "inputs": {
+          "body": {
+            "body": "start the coffee, set out 4 cups",
+            "from": "@parameters('Twilio_FromPhoneNumber')",
+            "to": "@parameters('Twilio_ToPhoneNumber')"
+          },
+          "host": {
+            "connection": {
+              "name": "@parameters('$connections')['twilio']['connectionId']"
+            }
+          },
+          "method": "post",
+          "path": "/Messages.json"
+        },
+        "runAfter": {},
+        "type": "ApiConnection"
+      },
+      "Send_Text_Message_2": {
+        "inputs": {
+          "body": {
+            "body": "pour two cups",
+            "from": "@parameters('Twilio_FromPhoneNumber')",
+            "to": "@parameters('Twilio_ToPhoneNumber')"
+          },
+          "host": {
+            "connection": {
+              "name": "@parameters('$connections')['twilio']['connectionId']"
+            }
+          },
+          "method": "post",
+          "path": "/Messages.json"
+        },
+        "runAfter": {
+          "Wait_for_25_mins": ["Succeeded"]
+        },
+        "type": "ApiConnection"
+      },
+      "Send_Text_Message_3": {
+        "inputs": {
+          "body": {
+            "body": "light the candles",
+            "from": "@parameters('Twilio_FromPhoneNumber')",
+            "to": "@parameters('Twilio_ToPhoneNumber')"
+          },
+          "host": {
+            "connection": {
+              "name": "@parameters('$connections')['twilio']['connectionId']"
+            }
+          },
+          "method": "post",
+          "path": "/Messages.json"
+        },
+        "runAfter": {
+          "Wait_for_5_mins": ["Succeeded"]
+        },
+        "type": "ApiConnection"
+      },
+      "Send_Text_Message_4": {
+        "inputs": {
+          "body": {
+            "body": "deliver the coffee to Mom and Dad",
+            "from": "@parameters('Twilio_FromPhoneNumber')",
+            "to": "@parameters('Twilio_ToPhoneNumber')"
+          },
+          "host": {
+            "connection": {
+              "name": "@parameters('$connections')['twilio']['connectionId']"
+            }
+          },
+          "method": "post",
+          "path": "/Messages.json"
+        },
+        "runAfter": {
+          "Wait_for_5_mins_(2)": ["Succeeded"]
+        },
+        "type": "ApiConnection"
+      },
+      "Send_Text_Message_5": {
+        "inputs": {
+          "body": {
+            "body": "return to kitchen, fill two more cups",
+            "from": "@parameters('Twilio_FromPhoneNumber')",
+            "to": "@parameters('Twilio_ToPhoneNumber')"
+          },
+          "host": {
+            "connection": {
+              "name": "@parameters('$connections')['twilio']['connectionId']"
+            }
+          },
+          "method": "post",
+          "path": "/Messages.json"
+        },
+        "runAfter": {
+          "Wait_for_4_mins": ["Succeeded"]
+        },
+        "type": "ApiConnection"
+      },
+      "Send_Text_Message_6": {
+        "inputs": {
+          "body": {
+            "body": "relight the candles",
+            "from": "@parameters('Twilio_FromPhoneNumber')",
+            "to": "@parameters('Twilio_ToPhoneNumber')"
+          },
+          "host": {
+            "connection": {
+              "name": "@parameters('$connections')['twilio']['connectionId']"
+            }
+          },
+          "method": "post",
+          "path": "/Messages.json"
+        },
+        "runAfter": {
+          "Wait_for_1_min": ["Succeeded"]
+        },
+        "type": "ApiConnection"
+      },
+      "Send_Text_Message_7": {
+        "inputs": {
+          "body": {
+            "body": "deliver the coffee to Sister and Brother",
+            "from": "@parameters('Twilio_FromPhoneNumber')",
+            "to": "@parameters('Twilio_ToPhoneNumber')"
+          },
+          "host": {
+            "connection": {
+              "name": "@parameters('$connections')['twilio']['connectionId']"
+            }
+          },
+          "method": "post",
+          "path": "/Messages.json"
+        },
+        "runAfter": {
+          "Wait_for_5_mins_(3)": ["Succeeded"]
+        },
+        "type": "ApiConnection"
+      },
+      "Send_Text_Message_8": {
+        "inputs": {
+          "body": {
+            "body": "return to kitchen, take a break!",
+            "from": "@parameters('Twilio_FromPhoneNumber')",
+            "to": "@parameters('Twilio_ToPhoneNumber')"
+          },
+          "host": {
+            "connection": {
+              "name": "@parameters('$connections')['twilio']['connectionId']"
+            }
+          },
+          "method": "post",
+          "path": "/Messages.json"
+        },
+        "runAfter": {
+          "Wait_for_4_mins_(2)": ["Succeeded"]
+        },
+        "type": "ApiConnection"
+      },
+      "Wait_for_1_min": {
+        "inputs": {
+          "interval": {
+            "count": 1,
+            "unit": "Minute"
+          }
+        },
+        "runAfter": {
+          "Send_Text_Message_5": ["Succeeded"]
+        },
+        "type": "Wait"
+      },
+      "Wait_for_25_mins": {
+        "inputs": {
+          "interval": {
+            "count": 25,
+            "unit": "Minute"
+          }
+        },
+        "runAfter": {
+          "Send_Text_Message_1": ["Succeeded"]
+        },
+        "type": "Wait"
+      },
+      "Wait_for_4_mins": {
+        "inputs": {
+          "interval": {
+            "count": 4,
+            "unit": "Minute"
+          }
+        },
+        "runAfter": {
+          "Send_Text_Message_4": ["Succeeded"]
+        },
+        "type": "Wait"
+      },
+      "Wait_for_4_mins_(2)": {
+        "inputs": {
+          "interval": {
+            "count": 4,
+            "unit": "Minute"
+          }
+        },
+        "runAfter": {
+          "Send_Text_Message_7": ["Succeeded"]
+        },
+        "type": "Wait"
+      },
+      "Wait_for_5_mins": {
+        "inputs": {
+          "interval": {
+            "count": 5,
+            "unit": "Minute"
+          }
+        },
+        "runAfter": {
+          "Send_Text_Message_2": ["Succeeded"]
+        },
+        "type": "Wait"
+      },
+      "Wait_for_5_mins_(2)": {
+        "inputs": {
+          "interval": {
+            "count": 5,
+            "unit": "Minute"
+          }
+        },
+        "runAfter": {
+          "Send_Text_Message_3": ["Succeeded"]
+        },
+        "type": "Wait"
+      },
+      "Wait_for_5_mins_(3)": {
+        "inputs": {
+          "interval": {
+            "count": 5,
+            "unit": "Minute"
+          }
+        },
+        "runAfter": {
+          "Send_Text_Message_6": ["Succeeded"]
+        },
+        "type": "Wait"
+      }
+    },
+    "contentVersion": "1.0.0.0",
+    "outputs": {},
+    "parameters": {
+      "$connections": {
+        "defaultValue": {},
+        "type": "Object"
+      },
+      "Twilio_FromPhoneNumber": {
+        "defaultValue": "+12564826466",
+        "type": "String"
+      },
+      "Twilio_ToPhoneNumber": {
+        "defaultValue": "NUMBER_TO_SEND_TXT",
+        "type": "String"
+      }
+    },
+    "triggers": {
+      "Recurrence": {
+        "recurrence": {
+          "frequency": "Day",
+          "interval": 1,
+          "schedule": {
+            "hours": ["8"],
+            "minutes": [0]
+          },
+          "startTime": "2019-12-13T15:00",
+          "timeZone": "W. Europe Standard Time"
+        },
+        "type": "Recurrence"
+      }
+    }
+  },
+  "parameters": {
+    "$connections": {
+      "value": {
+        "twilio": {
+          "connectionId": "/subscriptions/a441b36f-83e5-4b8c-b1d5-b857313f06fb/resourceGroups/day-02/providers/Microsoft.Web/connections/twilio",
+          "connectionName": "twilio",
+          "id": "/subscriptions/a441b36f-83e5-4b8c-b1d5-b857313f06fb/providers/Microsoft.Web/locations/australiaeast/managedApis/twilio"
+        }
+      }
+    }
+  }
+}
