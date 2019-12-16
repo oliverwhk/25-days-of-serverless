@@ -12,7 +12,7 @@ namespace day_03
     public static class PngImageCommitFunction
     {
         [FunctionName("PngImageCommitFunction")]
-        public static async Task<IActionResult> Run([HttpTrigger(AuthorizationLevel.Function, "get", Route = null)] HttpRequest req, ILogger log)
+        public static async Task<IActionResult> Run([HttpTrigger(AuthorizationLevel.Function, "post", Route = null)] HttpRequest req, ILogger log)
         {
             string name = req.Query["name"];
 
