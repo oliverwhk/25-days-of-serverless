@@ -1,5 +1,8 @@
+using System;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
+using day_03.Model;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
@@ -14,25 +17,34 @@ namespace day_03
         [FunctionName("PngImageCommitFunction")]
         public static async Task<IActionResult> Run([HttpTrigger(AuthorizationLevel.Function, "post", Route = null)] HttpRequest req, ILogger log)
         {
-            string name = req.Query["name"];
+            // Validate the GitHub Event Type
+            if (!req.Headers.ContainsKey("X-GitHub-Event") || req.Headers["X-GitHub-Event"] != "push")
+            {
+                return new BadRequestObjectResult("Incorrect webhook trigger");
+            }
 
             string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
-            dynamic data = JsonConvert.DeserializeObject(requestBody);
+            var gitCommitEvents = JsonConvert.DeserializeObject<GitCommitEvent>(requestBody);
 
-            name = name ?? data?.name;
-
-            //TODO: Deserialise request into Git webhook event object
-            log.LogInformation("Deserialise request into Git webhook event object");
+            foreach (var commit in gitCommitEvents.Commits)
+            {
+                foreach (var added in commit.Added)
+                {
+                    log.LogInformation($"Added file path: {gitCommitEvents.Repository.HtmlUrl}/{added}");
+                    // if (added.EndsWith(".png", StringComparison.OrdinalIgnoreCase))
+                    // {
+                    //     
+                    // }
+                }
+            }
 
             //TODO: Extract PNG urls from the event object
-            log.LogInformation("Extract PNG urls from the event object");
+            log.LogInformation("TODO: Extract PNG urls from the event object");
 
             //TODO: Persist down to azure table storage
-            log.LogInformation("Persist down to azure table storage");
+            log.LogInformation("TODO: Persist down to azure table storage");
 
-            return name != null
-                ? (ActionResult)new OkObjectResult($"Hello, {name}")
-                : new BadRequestObjectResult("Please pass a name on the query string or in the request body");
+            return new OkObjectResult("");
         }
     }
 }
