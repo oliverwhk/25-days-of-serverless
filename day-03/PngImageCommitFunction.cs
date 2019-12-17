@@ -30,7 +30,7 @@ namespace day_03
             {
                 foreach (var added in commit.Added)
                 {
-                    log.LogInformation($"Added file path: {gitCommitEvents.Repository.HtmlUrl}/{added}");
+                    log.LogInformation($"Added file path: {gitCommitEvents.Repository.Url}/raw/master/{added}");
                     // if (added.EndsWith(".png", StringComparison.OrdinalIgnoreCase))
                     // {
                     //     
