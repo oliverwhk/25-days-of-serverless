@@ -71,9 +71,10 @@ namespace day_03
 
             foreach (var pngImage in pngImages)
             {
-                var entity = new PngImageEntity(pngImage.Name, pngImage.Name)
+                var pngImageFileName = pngImage.Name.Substring(pngImage.Name.LastIndexOf("/") + 1);
+                var entity = new PngImageEntity(pngImageFileName)
                 {
-                    Name = pngImage.Name, Url = pngImage.Url
+                    Url = pngImage.Url
                 };
                 insertBatch.Add(TableOperation.Insert(entity));
             }

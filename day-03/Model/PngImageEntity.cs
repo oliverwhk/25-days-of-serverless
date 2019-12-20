@@ -4,15 +4,12 @@ namespace day_03.Model
 {
     public class PngImageEntity : TableEntity
     {
-        public PngImageEntity(string key, string row)
+        public PngImageEntity(string imageName)
         {
-            this.PartitionKey = key;
-            this.RowKey = row;
+            PartitionKey = imageName;
+            RowKey = imageName;
         }
 
-        public PngImageEntity() { }
-
         public string Url { get; set; }
-        public string Name { get; set; }
     }
 }
