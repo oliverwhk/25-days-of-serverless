@@ -30,7 +30,7 @@ namespace day_03
             string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
             var gitCommitEvents = JsonConvert.DeserializeObject<GitCommitEvent>(requestBody);
 
-            var pngImages = ExtractPngImageFilePaths(log, gitCommitEvents);
+            var pngImages = ExtractPngImageFilePaths(log, gitCommitEvents).ToList();
             await PersistPngImageFilePaths(log, pngImages);
 
             return new OkObjectResult("");
