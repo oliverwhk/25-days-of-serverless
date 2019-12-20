@@ -54,7 +54,7 @@ namespace day_03
 
         private static void PersistPngImageFilePaths(ILogger log, IEnumerable<string> pngImageFilePaths)
         {
-            if (pngImageFilePaths.Count() == 0)
+            if (!pngImageFilePaths.Any())
             {
                 log.LogInformation("No PNG image file paths to processed.");
                 return;
