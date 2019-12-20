@@ -58,7 +58,7 @@ namespace day_03
         {
             if (!pngImages.Any())
             {
-                log.LogInformation("No PNG image file paths to persist.");
+                log.LogInformation("No PNG images to persist.");
                 return;
             }
 
