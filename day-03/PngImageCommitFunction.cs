@@ -9,6 +9,8 @@ using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
+using Microsoft.WindowsAzure.Storage;
+using Microsoft.WindowsAzure.Storage.Table;
 using Newtonsoft.Json;
 
 namespace day_03
@@ -28,13 +30,13 @@ namespace day_03
             string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
             var gitCommitEvents = JsonConvert.DeserializeObject<GitCommitEvent>(requestBody);
 
-            var pngImageFilePaths = GetPngImageFilePaths(log, gitCommitEvents);
-            PersistPngImageFilePaths(log, pngImageFilePaths);
+            var pngImages = ExtractPngImageFilePaths(log, gitCommitEvents);
+            await PersistPngImageFilePaths(log, pngImages);
 
             return new OkObjectResult("");
         }
 
-        private static IEnumerable<string> GetPngImageFilePaths(ILogger log, GitCommitEvent gitCommitEvents)
+        private static IEnumerable<PngImage> ExtractPngImageFilePaths(ILogger log, GitCommitEvent gitCommitEvents)
         {
             foreach (var commit in gitCommitEvents.Commits)
             {
@@ -46,21 +48,39 @@ namespace day_03
 
                         log.LogInformation($"Extracted PNG file path: {pngFilePath}");
 
-                        yield return pngFilePath;
+                        yield return new PngImage { Name = added, Url = pngFilePath };
                     }
                 }
             }
         }
 
-        private static void PersistPngImageFilePaths(ILogger log, IEnumerable<string> pngImageFilePaths)
+        private static async Task PersistPngImageFilePaths(ILogger log, IEnumerable<PngImage> pngImages)
         {
-            if (!pngImageFilePaths.Any())
+            if (!pngImages.Any())
             {
-                log.LogInformation("No PNG image file paths to processed.");
+                log.LogInformation("No PNG image file paths to persist.");
                 return;
             }
 
-            log.LogInformation("TODO: Persist down to azure table storage");
+            var storageAccount = CloudStorageAccount.Parse(Environment.GetEnvironmentVariable("AzureWebJobsStorage"));
+            var tableClient = storageAccount.CreateCloudTableClient();
+            var table = tableClient.GetTableReference("day032019");
+            await table.CreateIfNotExistsAsync();
+
+            var insertBatch = new TableBatchOperation();
+
+            foreach (var pngImage in pngImages)
+            {
+                var entity = new PngImageEntity(pngImage.Name, pngImage.Name)
+                {
+                    Name = pngImage.Name, Url = pngImage.Url
+                };
+                insertBatch.Add(TableOperation.Insert(entity));
+            }
+
+            await table.ExecuteBatchAsync(insertBatch);
+
+            log.LogInformation($"Persisted {pngImages.Count()} PNG images.");
         }
     }
 }
