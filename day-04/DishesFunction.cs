@@ -1,3 +1,4 @@
+using System;
 using System.Threading.Tasks;
 using day_04.Model;
 using Microsoft.AspNetCore.Mvc;
@@ -21,6 +22,19 @@ namespace day_04
             var dishes = await collection.Find(new BsonDocument()).ToListAsync();
 
             return new OkObjectResult(dishes);
+        }
+        
+        [FunctionName("CreateDish")]
+        public static async Task<IActionResult> CreateDishes([HttpTrigger(AuthorizationLevel.Function, "post", Route = "dishes")] HttpRequest req, ILogger log)
+        {
+            var client = new MongoClient(System.Environment.GetEnvironmentVariable("MongoDbAtlasConnectionString"));
+            var database = client.GetDatabase(System.Environment.GetEnvironmentVariable("MongoDbName"));
+            var collection = database.GetCollection<Dish>("dishes");
+
+            var newDish = new Dish { Name = $"new dish {DateTime.Now}" };
+            await collection.InsertOneAsync(newDish);
+
+            return new OkObjectResult("");
         }
     }
 }
