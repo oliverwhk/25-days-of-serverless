@@ -1,4 +1,3 @@
-using System;
 using System.Threading.Tasks;
 using day_04.Model;
 using Kevsoft.Azure.WebJobs;
@@ -24,16 +23,14 @@ namespace day_04
             return new OkObjectResult(dishes);
         }
         
-        // [FunctionName("GetDishById")]
-        // public static async Task<IActionResult> GetDishById([HttpTrigger(AuthorizationLevel.Function, "get", Route = "dishes")] HttpRequest req, ILogger log)
-        // {
-        //     var client = new MongoClient(System.Environment.GetEnvironmentVariable("MongoDbAtlasConnectionString"));
-        //     var database = client.GetDatabase(System.Environment.GetEnvironmentVariable("MongoDbName"));
-        //     var collection = database.GetCollection<Dish>("dishes");
-        //     var dishes = await collection.Find(new BsonDocument()).ToListAsync();
-        //
-        //     return new OkObjectResult(dishes);
-        // }
+        [FunctionName("GetDishById")]
+        public static async Task<IActionResult> GetDishById(
+            [HttpTrigger(AuthorizationLevel.Function, "get", Route = "dishes/{id}")] HttpRequest req, 
+            ILogger log,
+            [MongoDb("day-04", "dishes", "{id}", ConnectionStringSetting = "MongoDbUrl")] Dish dish)
+        {
+            return new OkObjectResult(dish);
+        }
         
         [FunctionName("CreateDish")]
         public static async Task<IActionResult> CreateDishes(
