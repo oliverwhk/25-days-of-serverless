@@ -42,5 +42,17 @@ namespace day_04
 
             return new OkObjectResult(newDish);
         }
+        
+        [FunctionName("Update")]
+        public static async Task<IActionResult> UpdateDish(
+            [HttpTrigger(AuthorizationLevel.Function, "put", Route = "dishes/{id}")] Dish dishToUpdate,
+            ILogger log,
+            [MongoDb("day-04", "dishes", "{id}", ConnectionStringSetting = "MongoDbUrl")] Dish dish)
+        {
+
+            dish.Name = dishToUpdate.Name;
+
+            return new OkObjectResult(dish);
+        }
     }
 }
