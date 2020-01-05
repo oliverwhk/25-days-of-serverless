@@ -18,9 +18,9 @@ namespace day_04
         public static async Task<IActionResult> GetDishes(
             [HttpTrigger(AuthorizationLevel.Function, "get", Route = "dishes")] HttpRequest req, 
             ILogger log,
-            [MongoDb("day-04", "dishes", ConnectionStringSetting = "MongoDbUrl")] IMongoCollection<BsonDocument> collection)
+            [MongoDb("day-04", "dishes", ConnectionStringSetting = "MongoDbUrl")] IMongoCollection<Dish> dishCollection)
         {
-            var dishes = await collection.Find(new BsonDocument()).ToListAsync();
+            var dishes = await dishCollection.Find(new BsonDocument()).ToListAsync();
             return new OkObjectResult(dishes);
         }
         
@@ -36,20 +36,12 @@ namespace day_04
         // }
         
         [FunctionName("CreateDish")]
-        public static async Task<IActionResult> CreateDishes([HttpTrigger(AuthorizationLevel.Function, "post", Route = "dishes")] HttpRequest req, ILogger log)
+        public static async Task<IActionResult> CreateDishes(
+            [HttpTrigger(AuthorizationLevel.Function, "post", Route = "dishes")] Dish newDish, 
+            ILogger log,
+            [MongoDb("day-04", "dishes", ConnectionStringSetting = "MongoDbUrl")] IAsyncCollector<Dish> dishCollection)
         {
-            // using var streamReader = new StreamReader();
-            // var requestBody = await streamReader.ReadToEndAsync();
-            // var model = JsonConvert.DeserializeObject<Dish>(requestBody);
-
-            var client = new MongoClient(System.Environment.GetEnvironmentVariable("MongoDbUrl"));
-            var database = client.GetDatabase(System.Environment.GetEnvironmentVariable("MongoDbName"));
-            var collection = database.GetCollection<Dish>("dishes");
-
-
-
-            var newDish = new Dish { Name = $"new dish {DateTime.Now}" };
-            await collection.InsertOneAsync(newDish);
+            await dishCollection.AddAsync(newDish);
 
             return new OkObjectResult(newDish);
         }
