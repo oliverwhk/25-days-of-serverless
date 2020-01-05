@@ -15,7 +15,7 @@ namespace day_04
     {
         [FunctionName("GetDishes")]
         public static async Task<IActionResult> GetDishes(
-            [HttpTrigger(AuthorizationLevel.Function, "get", Route = "dishes")] HttpRequest req, 
+            [HttpTrigger(AuthorizationLevel.Function, "get", Route = "dishes")] HttpRequest req,
             ILogger log,
             [MongoDb("day-04", "dishes", ConnectionStringSetting = "MongoDbUrl")] IMongoCollection<Dish> dishCollection)
         {
@@ -43,16 +43,27 @@ namespace day_04
             return new OkObjectResult(newDish);
         }
         
-        [FunctionName("Update")]
+        [FunctionName("UpdateDish")]
         public static async Task<IActionResult> UpdateDish(
             [HttpTrigger(AuthorizationLevel.Function, "put", Route = "dishes/{id}")] Dish dishToUpdate,
             ILogger log,
             [MongoDb("day-04", "dishes", "{id}", ConnectionStringSetting = "MongoDbUrl")] Dish dish)
         {
-
             dish.Name = dishToUpdate.Name;
 
             return new OkObjectResult(dish);
+        }
+        
+        [FunctionName("DeleteDish")]
+        public static async Task<IActionResult> DeletDish(
+            [HttpTrigger(AuthorizationLevel.Function, "delete", Route = "dishes/{id}")] HttpRequest req,
+            string id,
+            ILogger log,
+            [MongoDb("day-04", "dishes", ConnectionStringSetting = "MongoDbUrl")] IMongoCollection<Dish> dishCollection)
+        {
+            await dishCollection.DeleteOneAsync(d => d.Id == id);
+
+            return new OkObjectResult("");
         }
     }
 }
