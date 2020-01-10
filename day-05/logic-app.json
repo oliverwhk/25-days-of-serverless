@@ -1,0 +1,152 @@
+{
+    "definition": {
+        "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+        "actions": {
+            "For_each": {
+                "actions": {
+                    "Append_to_array_variable": {
+                        "inputs": {
+                            "name": "messages",
+                            "value": {
+                                "politeness": "@if(greater(body('Detect_Sentiment')?['score'], 0.5), 'nice', 'naughty')",
+                                "score": "@body('Detect_Sentiment')?['score']",
+                                "text": "@items('For_each')['message']",
+                                "translate": "@body('Translate_text')",
+                                "who": "@items('For_each')['who']"
+                            }
+                        },
+                        "runAfter": {
+                            "Detect_Sentiment": [
+                                "Succeeded"
+                            ]
+                        },
+                        "type": "AppendToArrayVariable"
+                    },
+                    "Detect_Sentiment": {
+                        "inputs": {
+                            "body": {
+                                "text": "@body('Translate_text')"
+                            },
+                            "host": {
+                                "connection": {
+                                    "name": "@parameters('$connections')['cognitiveservicestextanalytics']['connectionId']"
+                                }
+                            },
+                            "method": "post",
+                            "path": "/text/analytics/v2.1/sentiment"
+                        },
+                        "runAfter": {
+                            "Translate_text": [
+                                "Succeeded"
+                            ]
+                        },
+                        "type": "ApiConnection"
+                    },
+                    "Translate_text": {
+                        "inputs": {
+                            "body": {
+                                "Text": "@items('For_each')['message']"
+                            },
+                            "host": {
+                                "connection": {
+                                    "name": "@parameters('$connections')['translatorv2']['connectionId']"
+                                }
+                            },
+                            "method": "post",
+                            "path": "/Translate",
+                            "queries": {
+                                "textType": "plain",
+                                "to": "en"
+                            }
+                        },
+                        "runAfter": {},
+                        "type": "ApiConnection"
+                    }
+                },
+                "foreach": "@triggerBody()",
+                "runAfter": {
+                    "Initialize_variable": [
+                        "Succeeded"
+                    ]
+                },
+                "type": "Foreach"
+            },
+            "Initialize_variable": {
+                "inputs": {
+                    "variables": [
+                        {
+                            "name": "messages",
+                            "type": "array"
+                        }
+                    ]
+                },
+                "runAfter": {},
+                "type": "InitializeVariable"
+            },
+            "Response": {
+                "inputs": {
+                    "body": "@variables('messages')",
+                    "statusCode": 200
+                },
+                "kind": "Http",
+                "runAfter": {
+                    "For_each": [
+                        "Succeeded"
+                    ]
+                },
+                "type": "Response"
+            }
+        },
+        "contentVersion": "1.0.0.0",
+        "outputs": {},
+        "parameters": {
+            "$connections": {
+                "defaultValue": {},
+                "type": "Object"
+            }
+        },
+        "triggers": {
+            "manual": {
+                "inputs": {
+                    "method": "POST",
+                    "schema": {
+                        "items": {
+                            "properties": {
+                                "message": {
+                                    "type": "string"
+                                },
+                                "who": {
+                                    "type": "string"
+                                }
+                            },
+                            "required": [
+                                "who",
+                                "message"
+                            ],
+                            "type": "object"
+                        },
+                        "type": "array"
+                    }
+                },
+                "kind": "Http",
+                "type": "Request"
+            }
+        }
+    },
+    "parameters": {
+        "$connections": {
+            "value": {
+                "cognitiveservicestextanalytics": {
+                    "connectionId": "/subscriptions/a441b36f-83e5-4b8c-b1d5-b857313f06fb/resourceGroups/day-05/providers/Microsoft.Web/connections/cognitiveservicestextanalytics",
+                    "connectionName": "cognitiveservicestextanalytics",
+                    "id": "/subscriptions/a441b36f-83e5-4b8c-b1d5-b857313f06fb/providers/Microsoft.Web/locations/australiaeast/managedApis/cognitiveservicestextanalytics"
+                },
+                "translatorv2": {
+                    "connectionId": "/subscriptions/a441b36f-83e5-4b8c-b1d5-b857313f06fb/resourceGroups/day-05/providers/Microsoft.Web/connections/translatorv2",
+                    "connectionName": "translatorv2",
+                    "id": "/subscriptions/a441b36f-83e5-4b8c-b1d5-b857313f06fb/providers/Microsoft.Web/locations/australiaeast/managedApis/translatorv2"
+                }
+            }
+        }
+    }
+}
