@@ -13,6 +13,8 @@ namespace day_06
         public static async Task<List<string>> RunOrchestrator(
             [OrchestrationTrigger] DurableOrchestrationContext context)
         {
+            var message = context.GetInput<string>();
+
             var outputs = new List<string>();
 
             // Replace "hello" with the name of your Durable Activity Function.
@@ -34,12 +36,12 @@ namespace day_06
 
         [FunctionName(nameof(Scheduler) + "_" + nameof(HttpStart))]
         public static async Task<HttpResponseMessage> HttpStart(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = "schedule")]HttpRequestMessage req,
+            [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "schedule")]HttpRequestMessage req,
             [OrchestrationClient]DurableOrchestrationClient starter,
             ILogger log)
         {
-            // Function input comes from the request content.
-            string instanceId = await starter.StartNewAsync(nameof(Scheduler), null);
+            var message = await req.Content.ReadAsStringAsync();
+            string instanceId = await starter.StartNewAsync(nameof(Scheduler), message);
 
             log.LogInformation($"Started orchestration with ID = '{instanceId}'.");
 
