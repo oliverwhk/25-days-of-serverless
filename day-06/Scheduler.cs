@@ -2,16 +2,17 @@ using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Microsoft.Azure.WebJobs;
+using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.Extensions.Logging;
 
 namespace day_06
 {
-    public static class Scheduler
+    public class Scheduler
     {
         [FunctionName(nameof(Scheduler))]
-        public static async Task<List<string>> RunOrchestrator(
-            [OrchestrationTrigger] DurableOrchestrationContext context)
+        public async Task<List<string>> RunOrchestrator(
+            [OrchestrationTrigger] IDurableOrchestrationContext context)
         {
             var message = context.GetInput<string>();
 
@@ -28,24 +29,24 @@ namespace day_06
         }
 
         [FunctionName(nameof(Scheduler) + "_" + nameof(SayHello))]
-        public static string SayHello([ActivityTrigger] string name, ILogger log)
+        public string SayHello([ActivityTrigger] string name, ILogger log)
         {
             log.LogInformation($"Saying hello to {name}.");
             return $"Hello {name}!";
         }
 
         [FunctionName(nameof(Scheduler) + "_" + nameof(HttpStart))]
-        public static async Task<HttpResponseMessage> HttpStart(
+        public async Task<HttpResponseMessage> HttpStart(
             [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "schedule")]HttpRequestMessage req,
-            [OrchestrationClient]DurableOrchestrationClient starter,
+            [DurableClient]IDurableOrchestrationClient client,
             ILogger log)
         {
             var message = await req.Content.ReadAsStringAsync();
-            string instanceId = await starter.StartNewAsync(nameof(Scheduler), message);
+            string instanceId = await client.StartNewAsync(nameof(Scheduler), message);
 
             log.LogInformation($"Started orchestration with ID = '{instanceId}'.");
 
-            return starter.CreateCheckStatusResponse(req, instanceId);
+            return client.CreateCheckStatusResponse(req, instanceId);
         }
     }
 }
