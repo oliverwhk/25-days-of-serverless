@@ -1,31 +1,33 @@
-using System.Collections.Generic;
+using System;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Serialization;
 
 namespace day_06
 {
-    public class Scheduler
+    public partial class Scheduler
     {
         [FunctionName(nameof(Scheduler))]
-        public async Task<List<string>> RunOrchestrator(
+        public async Task RunOrchestrator(
             [OrchestrationTrigger] IDurableOrchestrationContext context)
         {
-            var message = context.GetInput<string>();
+            var message = context.GetInput<SlackMessage>();
 
-            var outputs = new List<string>();
-
-            // Replace "hello" with the name of your Durable Activity Function.
-            var sayHelloFunctionName = nameof(Scheduler) + "_" + nameof(SayHello);
-            outputs.Add(await context.CallActivityAsync<string>(sayHelloFunctionName, "Tokyo"));
-            outputs.Add(await context.CallActivityAsync<string>(sayHelloFunctionName, "Seattle"));
-            outputs.Add(await context.CallActivityAsync<string>(sayHelloFunctionName, "London"));
-
-            // returns ["Hello Tokyo!", "Hello Seattle!", "Hello London!"]
-            return outputs;
+            var slackWebhookUrl = "https://hooks.slack.com/services/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";
+            var slackContent = new
+            {
+                Text = $"TODO: remind you about '{message.Text}'"
+            };
+            var slackContentJson = JsonConvert.SerializeObject(slackContent, new JsonSerializerSettings
+            {
+                ContractResolver = new CamelCasePropertyNamesContractResolver()
+            });
+            await context.CallHttpAsync(HttpMethod.Post, new Uri(slackWebhookUrl), slackContentJson);
         }
 
         [FunctionName(nameof(Scheduler) + "_" + nameof(SayHello))]
@@ -42,7 +44,7 @@ namespace day_06
             ILogger log)
         {
             var message = await req.Content.ReadAsStringAsync();
-            string instanceId = await client.StartNewAsync(nameof(Scheduler), message);
+            string instanceId = await client.StartNewAsync(nameof(Scheduler), new SlackMessage { Text = message});
 
             log.LogInformation($"Started orchestration with ID = '{instanceId}'.");
 
