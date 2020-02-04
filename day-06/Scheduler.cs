@@ -1,5 +1,6 @@
 using System;
 using System.Net.Http;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.DurableTask;
@@ -14,7 +15,7 @@ namespace day_06
     {
         [FunctionName(nameof(Scheduler))]
         public async Task RunOrchestrator(
-            [OrchestrationTrigger] IDurableOrchestrationContext context)
+            [OrchestrationTrigger] IDurableOrchestrationContext context, ILogger log)
         {
             var message = context.GetInput<SlackMessage>();
 
@@ -23,6 +24,17 @@ namespace day_06
             {
                 Text = $"TODO: remind you about '{message.Text}'"
             };
+
+            log.LogInformation($"Timer of 5 minutes is starting...");
+            DateTime inFiveMinutes = context.CurrentUtcDateTime.AddMinutes(5);
+            await context.CreateTimer(inFiveMinutes, CancellationToken.None);
+            log.LogInformation($"Timer of 5 minutes has completed.");
+
+            log.LogInformation($"Timer of 1 hour is starting...");
+            DateTime inOneHour = context.CurrentUtcDateTime.AddHours(1);
+            await context.CreateTimer(inOneHour, CancellationToken.None);
+            log.LogInformation($"Timer of 1 hour has completed.");
+
             var slackContentJson = JsonConvert.SerializeObject(slackContent, new JsonSerializerSettings
             {
                 ContractResolver = new CamelCasePropertyNamesContractResolver()
