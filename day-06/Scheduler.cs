@@ -2,17 +2,26 @@ using System;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using day_06.Model;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 
 namespace day_06
 {
-    public partial class Scheduler
+    public class Scheduler
     {
+        private readonly SchedulerOptions _options;
+
+        public Scheduler(IOptions<SchedulerOptions> options)
+        {
+            _options = options.Value;
+        }
+
         [FunctionName(nameof(Scheduler))]
         public async Task RunOrchestrator(
             [OrchestrationTrigger] IDurableOrchestrationContext context, ILogger log)
@@ -34,8 +43,7 @@ namespace day_06
                 ContractResolver = new CamelCasePropertyNamesContractResolver()
             });
 
-            var slackWebhookUrl = "https://hooks.slack.com/services/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";
-            await context.CallHttpAsync(HttpMethod.Post, new Uri(slackWebhookUrl), slackContentJson);
+            await context.CallHttpAsync(HttpMethod.Post, new Uri(_options.SlackWebhookUrl), slackContentJson);
 
             log.LogInformation($"Posted slack message: {message}.");
         }
