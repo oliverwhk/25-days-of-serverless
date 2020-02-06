@@ -3,6 +3,6 @@
   "Values": {
     "AzureWebJobsStorage": "UseDevelopmentStorage=true",
     "FUNCTIONS_WORKER_RUNTIME": "dotnet",
-    "SchedulerOptions:SlackWebhookUrl": "https://hooks.slack.com/services/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"
+    "SchedulerOptions:SlackWebhookUrl": ""
   }
 }
