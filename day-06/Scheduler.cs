@@ -15,10 +15,12 @@ namespace day_06
 {
     public class Scheduler
     {
+        private readonly IHttpClientFactory _httpClientFactory;
         private readonly SchedulerOptions _options;
 
-        public Scheduler(IOptions<SchedulerOptions> options)
+        public Scheduler(IOptions<SchedulerOptions> options, IHttpClientFactory httpClientFactory)
         {
+            _httpClientFactory = httpClientFactory;
             _options = options.Value;
         }
 
@@ -29,47 +31,27 @@ namespace day_06
             var message = context.GetInput<SlackMessage>();
 
             var schedulingMessage = $"\"{message.Text}\" has been scheduled";
-            await PostSlackMessage(context, schedulingMessage, log);
+             await context.CallActivityAsync(nameof(Scheduler) + "_" + nameof(PostSlackMessage), schedulingMessage);
 
             //TODO: To schedule for some time
-            // await context.CallActivityAsync(nameof(Scheduler) + "_" + nameof(PostSlackMessage), message);
         }
 
-        public async Task PostSlackMessage(IDurableOrchestrationContext context, string message, ILogger log)
+        [FunctionName(nameof(Scheduler) + "_" + nameof(PostSlackMessage))]
+        public async void PostSlackMessage([ActivityTrigger] IDurableActivityContext context, ILogger log)
         {
+            var message = context.GetInput<string>();
+
+            var httpClient = _httpClientFactory.CreateClient();
+
             var slackContent = new { Text = message };
             var slackContentJson = JsonConvert.SerializeObject(slackContent, new JsonSerializerSettings
             {
                 ContractResolver = new CamelCasePropertyNamesContractResolver()
             });
+            await httpClient.PostAsync(_options.SlackWebhookUrl, new StringContent(slackContentJson));
 
-            await context.CallHttpAsync(HttpMethod.Post, new Uri(_options.SlackWebhookUrl), slackContentJson);
-
-            log.LogInformation($"Posted slack message: {message}.");
+            log.LogInformation($"Posted slack message: \"{message}.\"");
         }
-
-        // [FunctionName(nameof(Scheduler) + "_" + nameof(PostSlackMessage))]
-        // public string PostSlackMessage([ActivityTrigger] IDurableActivityContext context, ILogger log)
-        // {
-        //     var message = context.GetInput<SlackMessage>();
-        //
-        //     var slackWebhookUrl = "https://hooks.slack.com/services/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";
-        //     var slackContent = new
-        //     {
-        //         Text = $"TODO: remind you about '{message.Text}'"
-        //     };
-        //     
-        //     var slackContentJson = JsonConvert.SerializeObject(slackContent, new JsonSerializerSettings
-        //     {
-        //         ContractResolver = new CamelCasePropertyNamesContractResolver()
-        //     });
-        //
-        //     await context.CallHttpAsync(HttpMethod.Post, new Uri(slackWebhookUrl), slackContentJson);
-        //
-        //
-        //     log.LogInformation($"Post slack message: {message}.");
-        //     return $"Hello {message}!";
-        // }
 
         [FunctionName(nameof(Scheduler) + "_" + nameof(HttpStart))]
         public async Task<HttpResponseMessage> HttpStart(

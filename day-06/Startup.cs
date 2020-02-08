@@ -11,6 +11,8 @@ namespace day_06
     {
         public override void Configure(IFunctionsHostBuilder builder)
         {
+            builder.Services.AddHttpClient();
+
             builder.Services.AddOptions<SchedulerOptions>()
                 .Configure<IConfiguration>((settings, configuration) =>
                 {
