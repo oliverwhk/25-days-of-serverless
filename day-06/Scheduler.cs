@@ -1,5 +1,3 @@
-using System;
-using System.Linq;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
@@ -10,7 +8,6 @@ using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using Newtonsoft.Json.Serialization;
 
 namespace day_06
@@ -80,8 +77,9 @@ namespace day_06
             [DurableClient]IDurableOrchestrationClient client,
             ILogger log)
         {
-            var message = await req.Content.ReadAsStringAsync();
-            string instanceId = await client.StartNewAsync(nameof(Scheduler), new SlackMessage { Text = message});
+            var collection = await req.Content.ReadAsFormDataAsync();
+            var slackText = collection.Get("text");
+            string instanceId = await client.StartNewAsync(nameof(Scheduler), new SlackMessage { Text = slackText });
 
             log.LogInformation($"Started orchestration with ID = '{instanceId}'.");
 
