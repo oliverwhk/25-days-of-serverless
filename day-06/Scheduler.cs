@@ -1,3 +1,4 @@
+using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
@@ -28,15 +29,9 @@ namespace day_06
             [OrchestrationTrigger] IDurableOrchestrationContext context, ILogger log)
         {
             var message = context.GetInput<SlackMessage>();
-
             var luisResponse = await context.CallActivityAsync<LuisResponse>(nameof(Scheduler) + "_" + nameof(LuisDetectDateTime), message.Text);
 
-            var schedulingMessage = $"\"{message.Text}\" has been scheduled";
-            var schedulingMessageTask = context.CallActivityAsync(nameof(Scheduler) + "_" + nameof(PostSlackMessage), schedulingMessage);
-
-            var timerTask = context.CreateTimer(luisResponse.DetectedDateTime, CancellationToken.None);
-
-            await Task.WhenAll(schedulingMessageTask, timerTask);
+            await context.CreateTimer(luisResponse.DetectedDateTime, CancellationToken.None);
 
             var reminderMessage = $"You scheduled \"{message.Text.Replace(luisResponse.DateTimeToken, "")}\" to happen now";
             await context.CallActivityAsync(nameof(Scheduler) + "_" + nameof(PostSlackMessage), reminderMessage);
@@ -83,7 +78,11 @@ namespace day_06
 
             log.LogInformation($"Started orchestration with ID = '{instanceId}'.");
 
-            return client.CreateCheckStatusResponse(req, instanceId);
+            var schedulingMessage = $"\"{slackText}\" has been scheduled";
+            return new HttpResponseMessage(HttpStatusCode.OK)
+            {
+                Content = new StringContent(schedulingMessage)
+            };
         }
     }
 }
