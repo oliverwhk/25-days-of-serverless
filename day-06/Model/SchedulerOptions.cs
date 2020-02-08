@@ -3,5 +3,6 @@
     public class SchedulerOptions
     {
         public string SlackWebhookUrl { get; set; }
+        public string LuisUrl { get; set; }
     }
 }

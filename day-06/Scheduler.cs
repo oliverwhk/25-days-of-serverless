@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
@@ -9,6 +10,7 @@ using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using Newtonsoft.Json.Serialization;
 
 namespace day_06
@@ -30,10 +32,17 @@ namespace day_06
         {
             var message = context.GetInput<SlackMessage>();
 
-            var schedulingMessage = $"\"{message.Text}\" has been scheduled";
-             await context.CallActivityAsync(nameof(Scheduler) + "_" + nameof(PostSlackMessage), schedulingMessage);
+            var luisResponse = await context.CallActivityAsync<LuisResponse>(nameof(Scheduler) + "_" + nameof(LuisDetectDateTime), message.Text);
 
-            //TODO: To schedule for some time
+            var schedulingMessage = $"\"{message.Text}\" has been scheduled";
+            var schedulingMessageTask = context.CallActivityAsync(nameof(Scheduler) + "_" + nameof(PostSlackMessage), schedulingMessage);
+
+            var timerTask = context.CreateTimer(luisResponse.DetectedDateTime, CancellationToken.None);
+
+            await Task.WhenAll(schedulingMessageTask, timerTask);
+
+            var reminderMessage = $"You scheduled \"{message.Text.Replace(luisResponse.DateTimeToken, "")}\" to happen now";
+            await context.CallActivityAsync(nameof(Scheduler) + "_" + nameof(PostSlackMessage), reminderMessage);
         }
 
         [FunctionName(nameof(Scheduler) + "_" + nameof(PostSlackMessage))]
@@ -41,7 +50,7 @@ namespace day_06
         {
             var message = context.GetInput<string>();
 
-            var httpClient = _httpClientFactory.CreateClient();
+            using var httpClient = _httpClientFactory.CreateClient();
 
             var slackContent = new { Text = message };
             var slackContentJson = JsonConvert.SerializeObject(slackContent, new JsonSerializerSettings
@@ -51,6 +60,18 @@ namespace day_06
             await httpClient.PostAsync(_options.SlackWebhookUrl, new StringContent(slackContentJson));
 
             log.LogInformation($"Posted slack message: \"{message}.\"");
+        }
+        
+        [FunctionName(nameof(Scheduler) + "_" + nameof(LuisDetectDateTime))]
+        public async Task<LuisResponse> LuisDetectDateTime([ActivityTrigger] IDurableActivityContext context, ILogger log)
+        {
+            var message = context.GetInput<string>();
+            log.LogInformation("Calling Luis to detect time.");
+
+            using var httpClient = _httpClientFactory.CreateClient();
+            var luisJsonResponse = await httpClient.GetStringAsync(string.Format(_options.LuisUrl, message));
+
+            return LuisResponse.Parse(luisJsonResponse);
         }
 
         [FunctionName(nameof(Scheduler) + "_" + nameof(HttpStart))]
